@@ -1,6 +1,11 @@
+export type MessageContent =
+  | string
+  | Array<{ type: "text"; text: string } | { type: "image_url"; image_url: { url: string } }>;
+
 export type Message = {
   role: "user" | "assistant";
-  content: string;
+  content: MessageContent;
+  imageUrl?: string; // for UI display only
 };
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/dermsight-chat`;
@@ -16,13 +21,19 @@ export async function streamChat({
   onDone: () => void;
   onError: (error: string) => void;
 }) {
+  // Build API messages (strip imageUrl display field)
+  const apiMessages = messages.map((m) => ({
+    role: m.role,
+    content: m.content,
+  }));
+
   const resp = await fetch(CHAT_URL, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
     },
-    body: JSON.stringify({ messages }),
+    body: JSON.stringify({ messages: apiMessages }),
   });
 
   if (!resp.ok) {

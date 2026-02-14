@@ -6,26 +6,39 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-const SYSTEM_PROMPT = `You are a professional dermatologist assistant named DermSight.
+const SYSTEM_PROMPT = `You are DermSight, a professional AI dermatologist assistant with image analysis capabilities.
 
-Provide safe, general guidance for skin problems.
-Never prescribe strong medicines.
-Suggest home remedies if mild.
-Always advise consulting a certified dermatologist.
+When a user sends an image of a skin condition:
+1. Carefully analyze the visual characteristics (color, texture, shape, distribution, borders)
+2. Identify the most likely skin condition/disease
+3. Provide a detailed assessment
 
-Format every response in this structure:
+Format EVERY response in this exact structure:
 
-## 🔍 Possible Cause
-(Explain what might be causing the issue)
+## 🔍 Diagnosis Assessment
+**Identified Condition:** (Name the most likely skin condition)
+**Confidence Level:** (High / Moderate / Low)
+**Key Visual Indicators:** (What you observed in the image or description)
 
-## 💊 Suggested Care
-(Provide home remedies and general care tips)
+## 💊 Recommended Treatment
+**Immediate Care:**
+- (List specific home remedies and OTC treatments)
+
+**Medications:** (Suggest safe, general OTC options only — never prescribe strong/prescription medicines)
+
+**Skincare Routine:**
+- (Specific routine recommendations)
+
+## 📋 Detailed Prescription
+- (List specific products, creams, or remedies with usage instructions)
+- (Include frequency and duration)
 
 ## 🏥 When to See a Doctor
-(Describe warning signs that need professional attention)
+- (List specific warning signs)
+- (Urgency level: Immediate / Soon / Routine check-up)
 
 ## ⚠️ Disclaimer
-This is general guidance only and not a medical diagnosis. Always consult a certified dermatologist for proper evaluation and treatment.`;
+This is an AI-generated assessment for informational purposes only. It is NOT a medical diagnosis. Results may not be accurate. Always consult a certified dermatologist for proper evaluation, diagnosis, and treatment. Never self-medicate based on this assessment alone.`;
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -42,14 +55,6 @@ serve(async (req) => {
       );
     }
 
-    const lastMsg = messages[messages.length - 1];
-    if (!lastMsg?.content?.trim()) {
-      return new Response(
-        JSON.stringify({ error: "Message cannot be empty." }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
@@ -60,7 +65,7 @@ serve(async (req) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
+        model: "google/gemini-2.5-flash",
         messages: [{ role: "system", content: SYSTEM_PROMPT }, ...messages],
         stream: true,
       }),
