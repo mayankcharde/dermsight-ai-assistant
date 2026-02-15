@@ -1,5 +1,6 @@
-import { Plus, MessageSquare, Moon, Sun } from "lucide-react";
+import { Plus, MessageSquare, Moon, Sun, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 
 interface Props {
   dark: boolean;
@@ -8,6 +9,13 @@ interface Props {
 }
 
 export function ChatSidebar({ dark, onToggleDark, onNewChat }: Props) {
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    navigate("/login");
+  };
+
   return (
     <aside className="w-64 bg-sidebar border-r border-sidebar-border flex flex-col h-full">
       {/* Logo */}
@@ -36,11 +44,20 @@ export function ChatSidebar({ dark, onToggleDark, onNewChat }: Props) {
         ))}
       </div>
 
-      {/* Dark mode */}
-      <div className="p-3 border-t border-sidebar-border">
+      {/* Dark mode & Logout */}
+      <div className="p-3 border-t border-sidebar-border space-y-1">
         <Button variant="ghost" size="sm" onClick={onToggleDark} className="w-full justify-start gap-2">
           {dark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
           {dark ? "Light Mode" : "Dark Mode"}
+        </Button>
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          onClick={handleLogout} 
+          className="w-full justify-start gap-2 text-destructive hover:text-destructive hover:bg-destructive/10"
+        >
+          <LogOut className="w-4 h-4" />
+          Logout
         </Button>
       </div>
     </aside>
